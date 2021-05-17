@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>My Paint</title>
+	<style>
+         canvas{border:2px solid black;margin-top: 30px;background-color: #d9d9d9}
+         body{background-color: #000000;overflow: hidden;}
+         .btn{ position:relative;left:30% ; top:10px;}
+         .btn1{ position:relative;left:60% ; top:10px;}
+         .h1{position: relative;left: -4%;top: -390px;font-size: 160px;writing-mode: vertical-lr;color: white;}
+         .h2{position: relative;left: 78%;top: -730px;font-size: 130px;writing-mode: vertical-rl;color: white;}
+
+    </style>
+
+</head>
+<body>
+	<center><canvas id="canvas" width="800" height="500"></canvas></center>
+	<script type="text/javascript">
+		var dict={};
+		var index=0;
+		var value=0;
+		var mouse_status=false;
+		var StartX,StartY,tmpx=false,tmpy=false;
+		var context=canvas.getContext('2d');
+		var canvas_element=document.getElementById('canvas');
+		function randomNumber(min, max) {
+ 				 return Math.floor(Math.random() * (max - min + 1)) + min;
+			}
+		canvas_element.addEventListener('dblclick',dblclick);
+		function dblclick(event){
+			var i;
+			var check=false;
+			var startpos=getpos(canvas_element,event);
+			StartX=startpos.x;
+			StartY=startpos.y;
+			for(i=value-1;i>=0;i--)
+			{
+				if((dict[i]["x"] <= StartX && StartX <= dict[i]["x1"]) &&  (StartY >= dict[i]["y"] && StartY <= dict[i]["y1"]))
+				{
+
+					check=true;
+					break;
+				}
+			}
+			console.log(check,i);
+			if(check){
+					context.clearRect(dict[i]["x"],dict[i]["y"],dict[i]["x1"]-dict[i]["x"],dict[i]["y1"]-dict[i]["y"]);
+					for(x=i;x<value-1;x++)
+					{
+						dict[x]['x']=dict[x+1]['x'];
+						dict[x]['y']=dict[x+1]['y'];
+						dict[x]['x1']=dict[x+1]['x1'];
+						dict[x]['y1']=dict[x+1]['y1'];
+						dict[x]['color']=dict[x+1]['color'];
+					}
+					value=value-1;
+
+			}
+			for(x=0;x<value;x++)
+			{
+				context.fillStyle=dict[x]["color"];
+				context.beginPath();
+				context.fillRect(dict[x]["x"],dict[x]["y"],dict[x]["x1"]-dict[x]["x"],dict[x]["y1"]-dict[x]["y"]);
+			}	
+
+		}	
+		canvas_element.addEventListener('mousedown',
+			function(evt){
+				var check=If_inbox();
+				if(check)
+				{
+					canvas_element.addEventListener("mousemove",onMousemove);
+					canvas_element.addEventListener("mouseup",onMouseup);
+					index=i;
+				}
+				else
+				{
+					mouse_status=true;
+					canvas_element.style.cursor="crosshair";
+					console.log(value)
+				}
+		});
+		canvas_element.addEventListener('mouseup',
+			function(evt){
+				if(mouse_status)
+				{
+					var mousepos= getpos(canvas_element,evt);
+					var x=mousepos.x;
+					var y=mousepos.y;
+					draw(x,y,canvas_element);
+					mouse_status=false;
+				}
+	
+
+		});
+		function onMousemove(event){
+			console.log("move");
+			context.clearRect(dict[index]["x"],dict[index]["y"],dict[index]["x1"]-dict[index]["x"],dict[index]["y1"]-dict[index]["y"]);
+			var mousepos= getpos(canvas_element,event);
+			var x=mousepos.x;
+			var y=mousepos.y;
+			if(x < dict[index]["x"])
+			{
+				calc=dict[index]["x"]-x;
+				dict[index]["x"]=dict[index]["x"]-calc;
+				dict[index]["x1"]=dict[index]["x1"]-calc;
+			}
+			else
+			{
+				calc=x-dict[index]["x"];
+				dict[index]["x"]=dict[index]["x"]+calc;
+				dict[index]["x1"]=dict[index]["x1"]+calc;
+			}
+			if(y < dict[index]["y"])
+			{
+				calc=dict[index]["y"]-y;
+				dict[index]["y"]=dict[index]["y"]-calc;
+				dict[index]["y1"]=dict[index]["y1"]-calc;
+			}
+			else
+			{
+				calc=y-dict[index]["y"];
+				dict[index]["y"]=dict[index]["y"]+calc;
+				dict[index]["y1"]=dict[index]["y1"]+calc;
+			}
+			context.fillStyle=dict[index]["color"];
+			context.beginPath();
+			context.rect(dict[index]["x"],dict[index]["y"],dict[index]["x1"]-dict[index]["x"],dict[index]["y1"]-dict[index]["y"]);
+			context.fill();
+			var i,head=NaN,check=false;
+			for(i=value-1;i>=0;i--)
+			{
+				if(i!=index)
+				{
+					if((dict[i]["x"] <= x && x <= dict[i]["x1"]) &&  (y >= dict[i]["y"] && y <= dict[i]["y1"]))
+					{
+						head=i;
+						check=true;
+						break;
+					}
+				}
+			}
+			if(check)
+			{
+				context.fillStyle=dict[head]["color"];
+				context.beginPath();
+				context.fillRect(dict[head]["x"],dict[head]["y"],dict[head]["x1"]-dict[head]["x"],dict[head]["y1"]-dict[head]["y"]);
+			}	
+			
+
+		}
+		function onMouseup(event){
+			console.log("up")
+			canvas_element.removeEventListener("mousemove",onMousemove);
+			canvas_element.removeEventListener("mouseup",onMouseup);
+			var i;
+			for(i=0;i<value;i++)
+			{
+				context.fillStyle=dict[i]["color"];
+				context.beginPath();
+				context.fillRect(dict[i]["x"],dict[i]["y"],dict[i]["x1"]-dict[i]["x"],dict[i]["y1"]-dict[i]["y"]);
+			}
+
+		}
+		canvas_element.addEventListener('mousemove',
+		function(evt){
+			if(mouse_status){
+				var startpos=getpos(canvas_element,evt);
+				x=startpos.x;
+				y=startpos.y;
+				context.fillStyle='gray';
+				context.beginPath();
+				if(tmpx == false)
+				{
+					tmpx=x
+					tmpy=y
+				}
+				else
+				{
+					context.clearRect(StartX,StartY,tmpx-StartX,tmpy-StartY);
+					context.fillRect(StartX,StartY,x-StartX,y-StartY);
+					tmpx=x
+					tmpy=y
+				}
+			}
+			for(i=0;i<value;i++)
+			{
+				context.fillStyle=dict[i]["color"];
+				context.beginPath();
+				context.fillRect(dict[i]["x"],dict[i]["y"],dict[i]["x1"]-dict[i]["x"],dict[i]["y1"]-dict[i]["y"]);
+			}
+			
+		});
+		function getpos(canvas,evt){
+			var size = canvas.getBoundingClientRect()
+			return{
+				x:evt.clientX - size.left,
+				y:evt.clientY - size.top
+			};
+		}
+		function draw(x,y,canvas){
+    		var r = randomNumber(0, 255);
+    		var g = randomNumber(0, 255);
+    		var b = randomNumber(0, 255);
+   			Color = "rgb(" + r + "," + g + "," + b + ")";
+    		context.fillStyle=Color;
+			context.beginPath();
+			if(x<StartX && y < StartY)
+			{
+				context.fillRect(x,y,StartX-x,StartY-y);
+				data={"x" : x,"y" : y,"x1" : StartX,"y1" : StartY,"color" : Color};	
+			}
+			else if(x<StartX && y > StartY)
+			{
+				context.fillRect(x,StartY,StartX-x,y-StartY);
+				data={"x" : x,"y" : StartY,"x1" : StartX,"y1" : y,"color" : Color};
+			}
+			else if(x>StartX && y < StartY)
+			{
+				context.fillRect(StartX,y,x-StartX,StartY-y);
+				data={"x" : StartX,"y" : y,"x1" : x,"y1" : StartY,"color" : Color};
+			}
+			else
+			{
+				context.fillRect(StartX,StartY,x-StartX,y-StartY);
+				data={"x" : StartX,"y" : StartY,"x1" : x,"y1" : y,"color" : Color};
+			}
+			dict[value]=data;
+			value=value+1;
+			context.fill();
+			canvas.style.cursor="default";
+		}
+		function If_inbox(){
+			var check=false;
+			var startpos=getpos(canvas_element,event);
+			StartX=startpos.x;
+			StartY=startpos.y;
+			for(i=0;i<value;i++)
+			{
+				if((dict[i]["x"] <= StartX && StartX <= dict[i]["x1"]) &&  (StartY >= dict[i]["y"] && StartY <= dict[i]["y1"]))
+				{
+
+					check=true;
+					break;
+				}
+			}
+			return check;
+		}
+		function reset(){
+			context.clearRect(0,0,800,500);
+			value=0;
+			delete dict;
+		}
+		function clearLast()
+		{
+			context.clearRect(dict[value-1]["x"],dict[value-1]["y"],dict[value-1]["x1"]-dict[value-1]["x"],dict[value-1]["y1"]-dict[value-1]["y"]);
+			value=value-1;
+			for(i=0;i<value;i++)
+			{
+				context.fillStyle=dict[i]["color"];
+				context.beginPath();
+				context.fillRect(dict[i]["x"],dict[i]["y"],dict[i]["x1"]-dict[i]["x"],dict[i]["y1"]-dict[i]["y"]);
+			}
+		}
+	</script>
+	<button class="btn" onclick="reset()">RESET</button>
+	<button class="btn1" onclick="clearLast()">Clear Last</button>
+	<h1 class="h1">MY</h1>
+	<h1 class="h2">PAINT</h1>
+</body>
+</html>
